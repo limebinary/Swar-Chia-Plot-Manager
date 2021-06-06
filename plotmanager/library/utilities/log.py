@@ -1,4 +1,3 @@
-import dateparser
 import logging
 import os
 import psutil
@@ -22,7 +21,8 @@ def _analyze_log_end_date(contents):
         return False
     total_seconds, date_raw = match.groups()
     total_seconds = pretty_print_time(int(float(total_seconds)))
-    parsed_date = dateparser.parse(date_raw)
+    # Total time = 43326.975 seconds. CPU (71.990%) Sun Jun  6 04:46:44 2021
+    parsed_date = datetime.strptime(date_raw, '%b  %d %H:%M:%S %Y')
     return dict(
         total_seconds=total_seconds,
         date=parsed_date,
@@ -76,7 +76,7 @@ def analyze_log_dates(log_directory, analysis):
     files = get_completed_log_files(log_directory, skip=list(analysis['files'].keys()))
     for file_path, contents in files.items():
         data = _analyze_log_end_date(contents)
-        if data is None:
+        if not data:
             continue
         analysis['files'][file_path] = {'data': data, 'checked': False}
     analysis = _get_date_summary(analysis)
@@ -122,7 +122,8 @@ def get_phase_info(contents, view_settings=None, pretty_print=True):
             seconds, date_raw = match.groups()
             seconds = float(seconds)
             phase_times[phase] = pretty_print_time(int(seconds), view_settings['include_seconds_for_phase']) if pretty_print else seconds
-            parsed_date = dateparser.parse(date_raw)
+            # Time for phase 3 = 13679.398 seconds. CPU (53.410%) Sun Jun  6 04:09:28 2021
+            parsed_date = datetime.strptime(date_raw, '%b  %d %H:%M:%S %Y')
             phase_dates[phase] = parsed_date
 
     return phase_times, phase_dates
